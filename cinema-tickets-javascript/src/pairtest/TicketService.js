@@ -29,11 +29,60 @@ export default class TicketService {
 
   purchaseTickets(accountId, ...ticketTypeRequests) {
     this.#validateAccountId(accountId);
+    this.#validateTicketRequests(ticketTypeRequests);
+    this.#validateBusinessRules(ticketTypeRequests);
   }
 
   #validateAccountId(accountId) {
     if (!Number.isInteger(accountId) || accountId <= 0) {
       throw new InvalidPurchaseException('Account ID must be a positive integer');
     }
+  }
+
+  #validateTicketRequests(ticketTypeRequests) {
+    if (!ticketTypeRequests || ticketTypeRequests.length === 0) {
+      throw new InvalidPurchaseException('At least one ticket request is required');
+    }
+
+    const totalTickets = ticketTypeRequests.reduce(
+      (sum, request) => sum + request.getNoOfTickets(),
+      0,
+    );
+
+    if (totalTickets === 0) {
+      throw new InvalidPurchaseException('Total number of tickets must be greater than zero');
+    }
+
+    if (totalTickets > this.#MAX_TICKETS) {
+      throw new InvalidPurchaseException(
+        `Cannot purchase more than ${this.#MAX_TICKETS} tickets at a time`,
+      );
+    }
+  }
+
+  #validateBusinessRules(ticketTypeRequests) {
+    const ticketCounts = this.#countTicketsByType(ticketTypeRequests);
+
+    if (ticketCounts.ADULT === 0 && (ticketCounts.CHILD > 0 || ticketCounts.INFANT > 0)) {
+      throw new InvalidPurchaseException(
+        'Child and Infant tickets cannot be purchased without an Adult ticket',
+      );
+    }
+
+    if (ticketCounts.INFANT > ticketCounts.ADULT) {
+      throw new InvalidPurchaseException(
+        'Number of Infant tickets cannot exceed the number of Adult tickets',
+      );
+    }
+  }
+
+  #countTicketsByType(ticketTypeRequests) {
+    return ticketTypeRequests.reduce(
+      (counts, request) => {
+        counts[request.getTicketType()] += request.getNoOfTickets();
+        return counts;
+      },
+      { ADULT: 0, CHILD: 0, INFANT: 0 },
+    );
   }
 }
