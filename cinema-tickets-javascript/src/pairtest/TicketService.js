@@ -25,6 +25,12 @@ export default class TicketService {
    */
 
   purchaseTickets(accountId, ...ticketTypeRequests) {
-    // throws InvalidPurchaseException
+    this.#validateAccountId(accountId);
+  }
+
+  #validateAccountId(accountId) {
+    if (!Number.isInteger(accountId) || accountId <= 0) {
+      throw new InvalidPurchaseException('Account ID must be a positive integer');
+    }
   }
 }
