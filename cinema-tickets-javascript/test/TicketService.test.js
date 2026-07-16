@@ -106,6 +106,22 @@ describe('TicketService', () => {
     it('should reject null as a ticket request', () => {
       expect(() => ticketService.purchaseTickets(1, null)).toThrow(InvalidPurchaseException);
     });
+
+    it('should reject negative number of tickets', () => {
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', -1))).toThrow(
+        InvalidPurchaseException,
+      );
+    });
+
+    it('should reject negative tickets even when combined with valid tickets', () => {
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('ADULT', 5),
+          new TicketTypeRequest('CHILD', -2),
+        ),
+      ).toThrow(InvalidPurchaseException);
+    });
   });
 
   describe('business rule validation', () => {

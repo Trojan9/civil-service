@@ -30,9 +30,11 @@ export default class TicketService {
   purchaseTickets(accountId, ...ticketTypeRequests) {
     this.#validateAccountId(accountId);
     this.#validateTicketRequests(ticketTypeRequests);
-    this.#validateBusinessRules(ticketTypeRequests);
 
     const ticketCounts = this.#countTicketsByType(ticketTypeRequests);
+
+    this.#validateBusinessRules(ticketCounts);
+
     const totalAmount = this.#calculateTotalAmount(ticketCounts);
     const totalSeats = this.#calculateTotalSeats(ticketCounts);
 
@@ -55,6 +57,10 @@ export default class TicketService {
       if (!(request instanceof TicketTypeRequest)) {
         throw new InvalidPurchaseException('All arguments must be instances of TicketTypeRequest');
       }
+
+      if (request.getNoOfTickets() < 0) {
+        throw new InvalidPurchaseException('Number of tickets must not be negative');
+      }
     });
 
     const totalTickets = ticketTypeRequests.reduce(
@@ -73,9 +79,7 @@ export default class TicketService {
     }
   }
 
-  #validateBusinessRules(ticketTypeRequests) {
-    const ticketCounts = this.#countTicketsByType(ticketTypeRequests);
-
+  #validateBusinessRules(ticketCounts) {
     if (ticketCounts.ADULT === 0 && (ticketCounts.CHILD > 0 || ticketCounts.INFANT > 0)) {
       throw new InvalidPurchaseException(
         'Child and Infant tickets cannot be purchased without an Adult ticket',
