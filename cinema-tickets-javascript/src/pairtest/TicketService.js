@@ -1,3 +1,4 @@
+import TicketTypeRequest from './lib/TicketTypeRequest.js';
 import InvalidPurchaseException from './lib/InvalidPurchaseException.js';
 import TicketPaymentService from '../thirdparty/paymentgateway/TicketPaymentService.js';
 import SeatReservationService from '../thirdparty/seatbooking/SeatReservationService.js';
@@ -49,6 +50,12 @@ export default class TicketService {
     if (!ticketTypeRequests || ticketTypeRequests.length === 0) {
       throw new InvalidPurchaseException('At least one ticket request is required');
     }
+
+    ticketTypeRequests.forEach((request) => {
+      if (!(request instanceof TicketTypeRequest)) {
+        throw new InvalidPurchaseException('All arguments must be instances of TicketTypeRequest');
+      }
+    });
 
     const totalTickets = ticketTypeRequests.reduce(
       (sum, request) => sum + request.getNoOfTickets(),
