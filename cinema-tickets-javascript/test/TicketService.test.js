@@ -59,4 +59,102 @@ describe('TicketService', () => {
       ).not.toThrow();
     });
   });
+
+  describe('ticket request validation', () => {
+    it('should reject when no ticket requests are provided', () => {
+      expect(() => ticketService.purchaseTickets(1)).toThrow(InvalidPurchaseException);
+    });
+
+    it('should reject when total tickets exceed 25', () => {
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 26))).toThrow(
+        InvalidPurchaseException,
+      );
+    });
+
+    it('should accept exactly 25 tickets', () => {
+      expect(() =>
+        ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 25)),
+      ).not.toThrow();
+    });
+
+    it('should reject when total tickets across multiple requests exceed 25', () => {
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('ADULT', 20),
+          new TicketTypeRequest('CHILD', 6),
+        ),
+      ).toThrow(InvalidPurchaseException);
+    });
+
+    it('should reject when zero tickets are requested', () => {
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 0))).toThrow(
+        InvalidPurchaseException,
+      );
+    });
+  });
+
+  describe('business rule validation', () => {
+    it('should reject Child tickets without an Adult ticket', () => {
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('CHILD', 2))).toThrow(
+        InvalidPurchaseException,
+      );
+    });
+
+    it('should reject Infant tickets without an Adult ticket', () => {
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('INFANT', 1))).toThrow(
+        InvalidPurchaseException,
+      );
+    });
+
+    it('should reject Child and Infant tickets without an Adult ticket', () => {
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('CHILD', 1),
+          new TicketTypeRequest('INFANT', 1),
+        ),
+      ).toThrow(InvalidPurchaseException);
+    });
+
+    it('should accept Child tickets with an Adult ticket', () => {
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('ADULT', 1),
+          new TicketTypeRequest('CHILD', 1),
+        ),
+      ).not.toThrow();
+    });
+
+    it('should accept Infant tickets with an Adult ticket', () => {
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('ADULT', 1),
+          new TicketTypeRequest('INFANT', 1),
+        ),
+      ).not.toThrow();
+    });
+
+    it('should reject more Infants than Adults', () => {
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('ADULT', 1),
+          new TicketTypeRequest('INFANT', 2),
+        ),
+      ).toThrow(InvalidPurchaseException);
+    });
+
+    it('should accept equal number of Infants and Adults', () => {
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('ADULT', 2),
+          new TicketTypeRequest('INFANT', 2),
+        ),
+      ).not.toThrow();
+    });
+  });
 });
