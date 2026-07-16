@@ -96,8 +96,7 @@ export default class TicketService {
   #calculateTotalAmount(ticketCounts) {
     return (
       ticketCounts.ADULT * this.#TICKET_PRICES.ADULT +
-      ticketCounts.CHILD * this.#TICKET_PRICES.CHILD +
-      ticketCounts.INFANT * this.#TICKET_PRICES.INFANT
+      ticketCounts.CHILD * this.#TICKET_PRICES.CHILD
     );
   }
 

@@ -25,26 +25,44 @@ describe('TicketService', () => {
   describe('account validation', () => {
     it('should reject account ID of 0', () => {
       expect(() => ticketService.purchaseTickets(0)).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets(0)).toThrow(
+        'Account ID must be a positive integer',
+      );
     });
 
     it('should reject negative account ID', () => {
       expect(() => ticketService.purchaseTickets(-1)).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets(-1)).toThrow(
+        'Account ID must be a positive integer',
+      );
     });
 
     it('should reject non-integer account ID', () => {
       expect(() => ticketService.purchaseTickets(1.5)).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets(1.5)).toThrow(
+        'Account ID must be a positive integer',
+      );
     });
 
     it('should reject null account ID', () => {
       expect(() => ticketService.purchaseTickets(null)).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets(null)).toThrow(
+        'Account ID must be a positive integer',
+      );
     });
 
     it('should reject undefined account ID', () => {
       expect(() => ticketService.purchaseTickets(undefined)).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets(undefined)).toThrow(
+        'Account ID must be a positive integer',
+      );
     });
 
     it('should reject string account ID', () => {
       expect(() => ticketService.purchaseTickets('abc')).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets('abc')).toThrow(
+        'Account ID must be a positive integer',
+      );
     });
 
     it('should accept valid account ID of 1', () => {
@@ -63,11 +81,17 @@ describe('TicketService', () => {
   describe('ticket request validation', () => {
     it('should reject when no ticket requests are provided', () => {
       expect(() => ticketService.purchaseTickets(1)).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets(1)).toThrow(
+        'At least one ticket request is required',
+      );
     });
 
     it('should reject when total tickets exceed 25', () => {
       expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 26))).toThrow(
         InvalidPurchaseException,
+      );
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 26))).toThrow(
+        'Cannot purchase more than 25 tickets at a time',
       );
     });
 
@@ -85,11 +109,21 @@ describe('TicketService', () => {
           new TicketTypeRequest('CHILD', 6),
         ),
       ).toThrow(InvalidPurchaseException);
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('ADULT', 20),
+          new TicketTypeRequest('CHILD', 6),
+        ),
+      ).toThrow('Cannot purchase more than 25 tickets at a time');
     });
 
     it('should reject when zero tickets are requested', () => {
       expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 0))).toThrow(
         InvalidPurchaseException,
+      );
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 0))).toThrow(
+        'Total number of tickets must be greater than zero',
       );
     });
 
@@ -97,19 +131,31 @@ describe('TicketService', () => {
       expect(() => ticketService.purchaseTickets(1, { type: 'ADULT', noOfTickets: 1 })).toThrow(
         InvalidPurchaseException,
       );
+      expect(() => ticketService.purchaseTickets(1, { type: 'ADULT', noOfTickets: 1 })).toThrow(
+        'All arguments must be instances of TicketTypeRequest',
+      );
     });
 
     it('should reject a string instead of TicketTypeRequest', () => {
       expect(() => ticketService.purchaseTickets(1, 'ADULT')).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets(1, 'ADULT')).toThrow(
+        'All arguments must be instances of TicketTypeRequest',
+      );
     });
 
     it('should reject null as a ticket request', () => {
       expect(() => ticketService.purchaseTickets(1, null)).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets(1, null)).toThrow(
+        'All arguments must be instances of TicketTypeRequest',
+      );
     });
 
     it('should reject negative number of tickets', () => {
       expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', -1))).toThrow(
         InvalidPurchaseException,
+      );
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', -1))).toThrow(
+        'Number of tickets must not be negative',
       );
     });
 
@@ -121,6 +167,13 @@ describe('TicketService', () => {
           new TicketTypeRequest('CHILD', -2),
         ),
       ).toThrow(InvalidPurchaseException);
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('ADULT', 5),
+          new TicketTypeRequest('CHILD', -2),
+        ),
+      ).toThrow('Number of tickets must not be negative');
     });
   });
 
@@ -129,11 +182,17 @@ describe('TicketService', () => {
       expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('CHILD', 2))).toThrow(
         InvalidPurchaseException,
       );
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('CHILD', 2))).toThrow(
+        'Child and Infant tickets cannot be purchased without an Adult ticket',
+      );
     });
 
     it('should reject Infant tickets without an Adult ticket', () => {
       expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('INFANT', 1))).toThrow(
         InvalidPurchaseException,
+      );
+      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('INFANT', 1))).toThrow(
+        'Child and Infant tickets cannot be purchased without an Adult ticket',
       );
     });
 
@@ -145,6 +204,13 @@ describe('TicketService', () => {
           new TicketTypeRequest('INFANT', 1),
         ),
       ).toThrow(InvalidPurchaseException);
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('CHILD', 1),
+          new TicketTypeRequest('INFANT', 1),
+        ),
+      ).toThrow('Child and Infant tickets cannot be purchased without an Adult ticket');
     });
 
     it('should accept Child tickets with an Adult ticket', () => {
@@ -175,6 +241,13 @@ describe('TicketService', () => {
           new TicketTypeRequest('INFANT', 2),
         ),
       ).toThrow(InvalidPurchaseException);
+      expect(() =>
+        ticketService.purchaseTickets(
+          1,
+          new TicketTypeRequest('ADULT', 1),
+          new TicketTypeRequest('INFANT', 2),
+        ),
+      ).toThrow('Number of Infant tickets cannot exceed the number of Adult tickets');
     });
 
     it('should accept equal number of Infants and Adults', () => {
@@ -285,6 +358,9 @@ describe('TicketService', () => {
 
     it('should not call services when validation fails', () => {
       expect(() => ticketService.purchaseTickets(0)).toThrow(InvalidPurchaseException);
+      expect(() => ticketService.purchaseTickets(0)).toThrow(
+        'Account ID must be a positive integer',
+      );
       expect(mockPaymentService.makePayment).not.toHaveBeenCalled();
       expect(mockSeatReservationService.reserveSeat).not.toHaveBeenCalled();
     });
