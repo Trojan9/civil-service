@@ -15,7 +15,10 @@ export default class TicketService {
 
   #MAX_TICKETS = 25;
 
-  constructor(paymentService = new TicketPaymentService(), seatReservationService = new SeatReservationService()) {
+  constructor(
+    paymentService = new TicketPaymentService(),
+    seatReservationService = new SeatReservationService(),
+  ) {
     this.#paymentService = paymentService;
     this.#seatReservationService = seatReservationService;
   }

@@ -2,8 +2,6 @@ import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 import TicketService from '../src/pairtest/TicketService.js';
 import TicketTypeRequest from '../src/pairtest/lib/TicketTypeRequest.js';
 import InvalidPurchaseException from '../src/pairtest/lib/InvalidPurchaseException.js';
-import TicketPaymentService from '../src/thirdparty/paymentgateway/TicketPaymentService.js';
-import SeatReservationService from '../src/thirdparty/seatbooking/SeatReservationService.js';
 
 describe('TicketService', () => {
   let ticketService;
@@ -50,11 +48,15 @@ describe('TicketService', () => {
     });
 
     it('should accept valid account ID of 1', () => {
-      expect(() => ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 1))).not.toThrow();
+      expect(() =>
+        ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 1)),
+      ).not.toThrow();
     });
 
     it('should accept large valid account ID', () => {
-      expect(() => ticketService.purchaseTickets(999999, new TicketTypeRequest('ADULT', 1))).not.toThrow();
+      expect(() =>
+        ticketService.purchaseTickets(999999, new TicketTypeRequest('ADULT', 1)),
+      ).not.toThrow();
     });
   });
 });
