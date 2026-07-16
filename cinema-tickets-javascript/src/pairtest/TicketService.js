@@ -1,4 +1,3 @@
-import TicketTypeRequest from './lib/TicketTypeRequest.js';
 import InvalidPurchaseException from './lib/InvalidPurchaseException.js';
 import TicketPaymentService from '../thirdparty/paymentgateway/TicketPaymentService.js';
 import SeatReservationService from '../thirdparty/seatbooking/SeatReservationService.js';
@@ -31,6 +30,13 @@ export default class TicketService {
     this.#validateAccountId(accountId);
     this.#validateTicketRequests(ticketTypeRequests);
     this.#validateBusinessRules(ticketTypeRequests);
+
+    const ticketCounts = this.#countTicketsByType(ticketTypeRequests);
+    const totalAmount = this.#calculateTotalAmount(ticketCounts);
+    const totalSeats = this.#calculateTotalSeats(ticketCounts);
+
+    this.#paymentService.makePayment(accountId, totalAmount);
+    this.#seatReservationService.reserveSeat(accountId, totalSeats);
   }
 
   #validateAccountId(accountId) {
@@ -74,6 +80,18 @@ export default class TicketService {
         'Number of Infant tickets cannot exceed the number of Adult tickets',
       );
     }
+  }
+
+  #calculateTotalAmount(ticketCounts) {
+    return (
+      ticketCounts.ADULT * this.#TICKET_PRICES.ADULT +
+      ticketCounts.CHILD * this.#TICKET_PRICES.CHILD +
+      ticketCounts.INFANT * this.#TICKET_PRICES.INFANT
+    );
+  }
+
+  #calculateTotalSeats(ticketCounts) {
+    return ticketCounts.ADULT + ticketCounts.CHILD;
   }
 
   #countTicketsByType(ticketTypeRequests) {

@@ -157,4 +157,137 @@ describe('TicketService', () => {
       ).not.toThrow();
     });
   });
+
+  describe('payment calculation', () => {
+    it('should charge £25 for a single Adult ticket', () => {
+      ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 1));
+      expect(mockPaymentService.makePayment).toHaveBeenCalledWith(1, 25);
+    });
+
+    it('should charge £75 for 3 Adult tickets', () => {
+      ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 3));
+      expect(mockPaymentService.makePayment).toHaveBeenCalledWith(1, 75);
+    });
+
+    it('should charge £40 for 1 Adult and 1 Child', () => {
+      ticketService.purchaseTickets(
+        1,
+        new TicketTypeRequest('ADULT', 1),
+        new TicketTypeRequest('CHILD', 1),
+      );
+      expect(mockPaymentService.makePayment).toHaveBeenCalledWith(1, 40);
+    });
+
+    it('should charge £25 for 1 Adult and 1 Infant (Infant is free)', () => {
+      ticketService.purchaseTickets(
+        1,
+        new TicketTypeRequest('ADULT', 1),
+        new TicketTypeRequest('INFANT', 1),
+      );
+      expect(mockPaymentService.makePayment).toHaveBeenCalledWith(1, 25);
+    });
+
+    it('should charge £95 for 2 Adults, 3 Children, and 1 Infant', () => {
+      ticketService.purchaseTickets(
+        1,
+        new TicketTypeRequest('ADULT', 2),
+        new TicketTypeRequest('CHILD', 3),
+        new TicketTypeRequest('INFANT', 1),
+      );
+      expect(mockPaymentService.makePayment).toHaveBeenCalledWith(1, 95);
+    });
+
+    it('should correctly aggregate multiple requests for the same type', () => {
+      ticketService.purchaseTickets(
+        1,
+        new TicketTypeRequest('ADULT', 2),
+        new TicketTypeRequest('ADULT', 3),
+      );
+      expect(mockPaymentService.makePayment).toHaveBeenCalledWith(1, 125);
+    });
+  });
+
+  describe('seat reservation', () => {
+    it('should reserve 2 seats for 2 Adults', () => {
+      ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 2));
+      expect(mockSeatReservationService.reserveSeat).toHaveBeenCalledWith(1, 2);
+    });
+
+    it('should reserve 3 seats for 1 Adult and 2 Children', () => {
+      ticketService.purchaseTickets(
+        1,
+        new TicketTypeRequest('ADULT', 1),
+        new TicketTypeRequest('CHILD', 2),
+      );
+      expect(mockSeatReservationService.reserveSeat).toHaveBeenCalledWith(1, 3);
+    });
+
+    it('should not reserve a seat for Infants', () => {
+      ticketService.purchaseTickets(
+        1,
+        new TicketTypeRequest('ADULT', 2),
+        new TicketTypeRequest('INFANT', 1),
+      );
+      expect(mockSeatReservationService.reserveSeat).toHaveBeenCalledWith(1, 2);
+    });
+
+    it('should reserve 5 seats for 2 Adults, 3 Children, and 1 Infant', () => {
+      ticketService.purchaseTickets(
+        1,
+        new TicketTypeRequest('ADULT', 2),
+        new TicketTypeRequest('CHILD', 3),
+        new TicketTypeRequest('INFANT', 1),
+      );
+      expect(mockSeatReservationService.reserveSeat).toHaveBeenCalledWith(1, 5);
+    });
+  });
+
+  describe('service integration', () => {
+    it('should call payment service exactly once', () => {
+      ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 1));
+      expect(mockPaymentService.makePayment).toHaveBeenCalledTimes(1);
+    });
+
+    it('should call seat reservation service exactly once', () => {
+      ticketService.purchaseTickets(1, new TicketTypeRequest('ADULT', 1));
+      expect(mockSeatReservationService.reserveSeat).toHaveBeenCalledTimes(1);
+    });
+
+    it('should not call services when validation fails', () => {
+      expect(() => ticketService.purchaseTickets(0)).toThrow(InvalidPurchaseException);
+      expect(mockPaymentService.makePayment).not.toHaveBeenCalled();
+      expect(mockSeatReservationService.reserveSeat).not.toHaveBeenCalled();
+    });
+
+    it('should pass the correct account ID to both services', () => {
+      ticketService.purchaseTickets(42, new TicketTypeRequest('ADULT', 1));
+      expect(mockPaymentService.makePayment).toHaveBeenCalledWith(42, 25);
+      expect(mockSeatReservationService.reserveSeat).toHaveBeenCalledWith(42, 1);
+    });
+  });
+
+  describe('edge cases', () => {
+    it('should handle max tickets (25) with mixed types', () => {
+      ticketService.purchaseTickets(
+        1,
+        new TicketTypeRequest('ADULT', 10),
+        new TicketTypeRequest('CHILD', 10),
+        new TicketTypeRequest('INFANT', 5),
+      );
+      expect(mockPaymentService.makePayment).toHaveBeenCalledWith(1, 400);
+      expect(mockSeatReservationService.reserveSeat).toHaveBeenCalledWith(1, 20);
+    });
+
+    it('should handle multiple separate TicketTypeRequest objects', () => {
+      ticketService.purchaseTickets(
+        1,
+        new TicketTypeRequest('ADULT', 1),
+        new TicketTypeRequest('CHILD', 1),
+        new TicketTypeRequest('ADULT', 1),
+        new TicketTypeRequest('CHILD', 1),
+      );
+      expect(mockPaymentService.makePayment).toHaveBeenCalledWith(1, 80);
+      expect(mockSeatReservationService.reserveSeat).toHaveBeenCalledWith(1, 4);
+    });
+  });
 });
