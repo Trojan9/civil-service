@@ -92,6 +92,20 @@ describe('TicketService', () => {
         InvalidPurchaseException,
       );
     });
+
+    it('should reject a plain object instead of TicketTypeRequest', () => {
+      expect(() => ticketService.purchaseTickets(1, { type: 'ADULT', noOfTickets: 1 })).toThrow(
+        InvalidPurchaseException,
+      );
+    });
+
+    it('should reject a string instead of TicketTypeRequest', () => {
+      expect(() => ticketService.purchaseTickets(1, 'ADULT')).toThrow(InvalidPurchaseException);
+    });
+
+    it('should reject null as a ticket request', () => {
+      expect(() => ticketService.purchaseTickets(1, null)).toThrow(InvalidPurchaseException);
+    });
   });
 
   describe('business rule validation', () => {
