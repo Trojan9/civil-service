@@ -14,6 +14,34 @@ cd cinema-tickets-javascript
 npm install
 ```
 
+## Running the Demo
+
+```bash
+node demo.js
+```
+
+Example output:
+
+```
+=== Valid Purchases ===
+
+PASS: 1 Adult ticket (£25, 1 seat)
+PASS: 2 Adults + 3 Children (£95, 5 seats)
+PASS: 2 Adults + 2 Children + 1 Infant (£80, 4 seats)
+PASS: 25 Adult tickets - max allowed (£625, 25 seats)
+
+=== Invalid Purchases ===
+
+REJECTED: Account ID of 0 --> Account ID must be a positive integer
+REJECTED: Negative account ID --> Account ID must be a positive integer
+REJECTED: No ticket requests --> At least one ticket request is required
+REJECTED: 26 tickets - exceeds max --> Cannot purchase more than 25 tickets at a time
+REJECTED: Child without Adult --> Child and Infant tickets cannot be purchased without an Adult ticket
+REJECTED: Infant without Adult --> Child and Infant tickets cannot be purchased without an Adult ticket
+REJECTED: More Infants than Adults --> Number of Infant tickets cannot exceed the number of Adult tickets
+REJECTED: Plain object instead of TicketTypeRequest --> All arguments must be instances of TicketTypeRequest
+```
+
 ## Running Tests
 
 ```bash
